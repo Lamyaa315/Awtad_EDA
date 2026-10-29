@@ -4,9 +4,8 @@ Exploratory data analysis and an interactive Streamlit dashboard for surface EMG
 quadriceps during the barbell back squat. The goal is to find which signal features relate to a left/right quadriceps
 imbalance.
 
-**Live dashboard:** *[Streamlit Cloud link – added after deployment]*
 
-## Dataset
+## Dataset https://drive.google.com/drive/folders/1Afb87aRWru7r_N3qjg7K-RF-SBE913Kw?usp=sharing
 
 - **Source:** collected by the AWTAD team (graduation project). 33 female participants, each recording one or two sets
   of 5 barbell back squats.
@@ -56,15 +55,6 @@ AWTAD_Unit3/
    ```
 
    It opens at http://localhost:8501.
-
-3. **Deploy (Streamlit Community Cloud):** sign in at https://share.streamlit.io with GitHub, choose *Create app*,
-   pick this repository, branch `main`, main file path `app/app.py`, and deploy. The 3D viewer loads Three.js and its
-   character model from a CDN, so it needs an internet connection.
-
-4. (Optional) Re-run the notebook. Put the raw CSVs in `data/raw/<participant>/<participant>_<set>.csv`, open
-   `notebook/AWTAD_EDA_and_Modeling.ipynb` and run all cells. It rebuilds `app/clean_data.csv`.
-
-## Dashboard
 
 The dashboard uses the AWTAD visual identity (plum, peach and blush on a warm off-white background). Every number
 comes from the notebook: read from the files it writes into `app/`, recomputed with the notebook's exact method, or
