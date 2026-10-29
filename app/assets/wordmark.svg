@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 32" font-family="Inter, system-ui, Segoe UI, sans-serif">
+  <rect x="0" y="1" width="30" height="30" rx="9" fill="#4B3A57"/>
+  <circle cx="15" cy="16" r="6" fill="#F4D5C4"/>
+  <text x="40" y="22" font-size="17" font-weight="700" letter-spacing="2" fill="#4B3A57">AWTAD</text>
+</svg>

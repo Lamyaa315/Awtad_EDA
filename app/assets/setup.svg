@@ -1,0 +1,87 @@
+<svg viewBox="0 0 780 360" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, Segoe UI, sans-serif" role="img" aria-label="Barbell back squat with an EMG sensor on the quadriceps of each leg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#817984"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="780" height="360" rx="16" fill="#FFFFFF"/>
+
+  <!-- ===================== panel A: the exercise ===================== -->
+  <text x="24" y="34" font-size="15" font-weight="700" fill="#302A33">The exercise: barbell back squat</text>
+  <text x="24" y="54" font-size="12" fill="#817984">5 reps per set · 1–2 sets per participant</text>
+  <line x1="30" y1="312" x2="430" y2="312" stroke="#D9CFD6" stroke-width="2"/>
+
+  <!-- standing -->
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="104" cy="100" r="27" fill="#4B3A57" stroke="none"/>
+    <circle cx="104" cy="100" r="7" fill="#A995AD" stroke="none"/>
+    <line x1="106" y1="96" x2="100" y2="182" stroke="#8C7D90" stroke-width="20"/>
+    <polyline points="110,104 126,120 112,98" stroke="#8C7D90" stroke-width="8"/>
+    <line x1="100" y1="182" x2="108" y2="246" stroke="#8C7D90" stroke-width="20"/>
+    <line x1="108" y1="246" x2="100" y2="304" stroke="#8C7D90" stroke-width="15"/>
+    <line x1="98" y1="308" x2="128" y2="308" stroke="#8C7D90" stroke-width="8"/>
+  </g>
+  <circle cx="112" cy="74" r="17" fill="#8C7D90"/>
+  <rect x="112" y="204" width="11" height="20" rx="3" fill="#7A5596" stroke="#fff" stroke-width="1.5"/>
+  <text x="104" y="336" font-size="12" fill="#817984" text-anchor="middle">standing</text>
+
+  <!-- arrows down / up -->
+  <path d="M168,150 C200,170 220,200 236,232" stroke="#817984" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <path d="M250,140 C232,118 210,108 184,108" stroke="#817984" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+  <text x="214" y="88" font-size="12" fill="#817984" text-anchor="middle">down and up</text>
+  <text x="214" y="102" font-size="12" font-weight="700" fill="#302A33" text-anchor="middle">= 1 rep</text>
+
+  <!-- squat -->
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="334" cy="170" r="27" fill="#4B3A57" stroke="none"/>
+    <circle cx="334" cy="170" r="7" fill="#A995AD" stroke="none"/>
+    <line x1="338" y1="166" x2="300" y2="246" stroke="#8C7D90" stroke-width="20"/>
+    <polyline points="344,174 360,190 348,166" stroke="#8C7D90" stroke-width="8"/>
+    <line x1="300" y1="246" x2="362" y2="238" stroke="#8C7D90" stroke-width="20"/>
+    <line x1="362" y1="238" x2="336" y2="304" stroke="#8C7D90" stroke-width="15"/>
+    <line x1="334" y1="308" x2="364" y2="308" stroke="#8C7D90" stroke-width="8"/>
+  </g>
+  <circle cx="354" cy="144" r="17" fill="#8C7D90"/>
+  <rect x="322" y="224" width="20" height="11" rx="3" fill="#7A5596" stroke="#fff" stroke-width="1.5" transform="rotate(-7 332 229)"/>
+  <text x="330" y="336" font-size="12" fill="#817984" text-anchor="middle">bottom of the squat</text>
+
+  <!-- sensor call-out -->
+  <line x1="342" y1="222" x2="392" y2="196" stroke="#7A5596" stroke-width="1.4"/>
+  <text x="396" y="192" font-size="12" font-weight="700" fill="#7A5596">EMG sensor</text>
+  <text x="396" y="207" font-size="11" fill="#817984">front of the thigh</text>
+
+  <line x1="452" y1="30" x2="452" y2="330" stroke="#EAE3E8" stroke-width="1.5"/>
+
+  <!-- ===================== panel B: sensor placement ===================== -->
+  <text x="476" y="34" font-size="15" font-weight="700" fill="#302A33">Sensor placement (front view)</text>
+  <text x="476" y="54" font-size="12" fill="#817984">One sensor on the quadriceps of each leg</text>
+
+  <!-- hips -->
+  <rect x="540" y="72" width="164" height="44" rx="16" fill="#E6DCE2"/>
+  <!-- thighs -->
+  <rect x="546" y="92" width="66" height="160" rx="30" fill="#F8E9E5" stroke="#D9CFD6" stroke-width="1.5"/>
+  <rect x="632" y="92" width="66" height="160" rx="30" fill="#F8E9E5" stroke="#D9CFD6" stroke-width="1.5"/>
+  <!-- quadriceps -->
+  <ellipse cx="579" cy="176" rx="24" ry="62" fill="#E8B49C"/>
+  <ellipse cx="665" cy="176" rx="24" ry="62" fill="#E8B49C"/>
+  <!-- knees and shins -->
+  <circle cx="579" cy="256" r="17" fill="#F1E4E0" stroke="#D9CFD6" stroke-width="1.5"/>
+  <circle cx="665" cy="256" r="17" fill="#F1E4E0" stroke="#D9CFD6" stroke-width="1.5"/>
+  <rect x="560" y="270" width="38" height="44" rx="14" fill="#F8E9E5" stroke="#D9CFD6" stroke-width="1.5"/>
+  <rect x="646" y="270" width="38" height="44" rx="14" fill="#F8E9E5" stroke="#D9CFD6" stroke-width="1.5"/>
+  <!-- sensors -->
+  <rect x="570" y="158" width="18" height="30" rx="4" fill="#D4703F" stroke="#fff" stroke-width="2"/>
+  <rect x="656" y="158" width="18" height="30" rx="4" fill="#7A5596" stroke="#fff" stroke-width="2"/>
+
+  <!-- labels -->
+  <line x1="570" y1="173" x2="520" y2="173" stroke="#D4703F" stroke-width="1.4"/>
+  <text x="514" y="169" font-size="12" font-weight="700" fill="#D4703F" text-anchor="end">Right</text>
+  <text x="514" y="184" font-size="11" fill="#817984" text-anchor="end">sensor</text>
+  <line x1="674" y1="173" x2="722" y2="173" stroke="#7A5596" stroke-width="1.4"/>
+  <text x="728" y="169" font-size="12" font-weight="700" fill="#7A5596">Left</text>
+  <text x="728" y="184" font-size="11" fill="#817984">sensor</text>
+  <rect x="482" y="232" width="12" height="12" rx="3" fill="#E8B49C"/>
+  <text x="500" y="242" font-size="11" fill="#817984">quadriceps</text>
+  <text x="579" y="336" font-size="12" fill="#817984" text-anchor="middle">right leg</text>
+  <text x="665" y="336" font-size="12" fill="#817984" text-anchor="middle">left leg</text>
+</svg>

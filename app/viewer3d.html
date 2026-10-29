@@ -1,0 +1,598 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --plum:#4B3A57; --peach:#F4D5C4; --blush:#F8E9E5; --bg:#FCFAF8; --mauve:#A995AD; --ink:#302A33; --ink2:#817984;
+          --border:#EAE3E8; --left:#7A5596; --right:#D4703F; --hot:#D4703F; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; font-family: Inter, system-ui, sans-serif; color: var(--ink); }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+  .stage { position: relative; background: radial-gradient(ellipse at 50% 35%, #FFFFFF 0%, #F7F1F3 70%, #F1E8EC 100%);
+           border: 1px solid var(--border); border-radius: 16px; overflow: hidden; height: 520px; }
+  #gl { width: 100%; height: 100%; display: block; cursor: grab; }
+  #gl:active { cursor: grabbing; }
+  .badge { position: absolute; top: 14px; left: 14px; background: rgba(255,255,255,.92); border: 1px solid var(--border);
+           border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--plum); }
+  .badge.sim { background: #FFF4EC; border-color: #F2CDB7; color: #9A4A22; }
+  .views { position: absolute; bottom: 10px; right: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .hint { position: absolute; top: 19px; right: 16px; font-size: 11.5px; color: var(--ink2); }
+  .tip { position: absolute; pointer-events: none; background: #fff; border: 1px solid var(--border); border-radius: 8px;
+         padding: 5px 9px; font-size: 12px; color: var(--ink); display: none; box-shadow: 0 2px 8px rgba(48,42,51,.08); }
+  button, .seg button { font-family: inherit; font-size: 12.5px; border: 1px solid var(--border); background: #fff; color: var(--ink);
+           border-radius: 9px; padding: 6px 11px; cursor: pointer; }
+  button:hover { border-color: var(--mauve); }
+  button.on { background: var(--plum); color: #fff; border-color: var(--plum); }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink2); font-size: 13px; pointer-events: none; }
+  .fallback { position: absolute; inset: 0; display: none; place-items: center; text-align: center; padding: 30px; color: var(--ink2); }
+
+  .transport { display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .transport .time { font-variant-numeric: tabular-nums; color: var(--ink2); font-size: 12.5px; margin-left: 4px; }
+  .transport .grow { flex: 1; }
+  .timeline { margin-top: 10px; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px 4px; }
+  #tl { width: 100%; height: 112px; display: block; cursor: pointer; touch-action: none; }
+  .tl-legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--ink2); padding: 2px 2px 4px; flex-wrap: wrap; }
+  .sw { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+
+  .panel { display: flex; flex-direction: column; gap: 12px; }
+  .box { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+  .eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--left); }
+  .phase { font-size: 18px; font-weight: 700; margin: 3px 0 4px; }
+  .muted { color: var(--ink2); font-size: 12.5px; line-height: 1.5; }
+  .steps { display: flex; gap: 4px; margin-top: 10px; }
+  .steps span { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+  .steps span.on { background: var(--plum); }
+  .side { display: grid; grid-template-columns: 46px 1fr 62px; align-items: center; gap: 8px; margin-top: 9px; font-size: 12.5px; }
+  .side b { font-weight: 600; }
+  .bar { height: 10px; background: #F3EEF1; border-radius: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 6px; transition: width .08s linear; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .verdict { margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: var(--blush); font-size: 12.5px; line-height: 1.45; }
+  .si-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 4px; }
+  .si-row .big { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pill { border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+  .pill.imb { background: #F1ECF3; color: var(--plum); }
+  .pill.bal { background: #E9F3EF; color: #1F6B5C; }
+  .pill.na { background: #F3F1F2; color: var(--ink2); }
+  .scale { height: 10px; border-radius: 6px; margin: 8px 0 4px;
+           background: linear-gradient(90deg, #D8CDDC 0%, #F4D5C4 50%, #E89A72 78%, #D4703F 100%); }
+  .scale-l { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink2); }
+  .unmeasured { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink2); margin-top: 6px; }
+  .unmeasured i { width: 12px; height: 12px; border-radius: 3px; background: #E6E1E5; display: inline-block; border: 1px solid #DAD3D8; }
+  .demo { display: none; margin-top: 8px; }
+  .demo input { width: 100%; accent-color: var(--plum); }
+  @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } .stage { height: 420px; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="stage">
+      <canvas id="gl" aria-label="Interactive 3D figure doing a barbell back squat, with the quadriceps of each leg coloured by activation"></canvas>
+      <div class="badge" id="badge">RECORDED EMG</div>
+      <div class="views">
+        <button data-view="front">Front</button><button data-view="three" class="on">3/4</button>
+        <button data-view="side">Side</button><button data-view="back">Back</button>
+        <span style="width:8px"></span><button data-look="natural" class="on">Natural</button><button data-look="anatomy">Anatomy</button>
+      </div>
+      <div class="hint">Drag to rotate · scroll to zoom · hover the thigh</div>
+      <div class="tip" id="tip"></div>
+      <div class="loading" id="loading">Loading the 3D model…</div>
+      <div class="fallback" id="fallback">The 3D view could not start (no internet for the 3D model, or WebGL is unavailable).<br>
+        The activation panel and timeline still show the recorded values.</div>
+    </div>
+    <div class="transport">
+      <button id="play" style="min-width:76px">▶ Play</button>
+      <button id="replay">↺ Replay</button>
+      <span class="seg"><button data-speed="0.5">0.5×</button><button data-speed="1" class="on">1×</button><button data-speed="2">2×</button></span>
+      <span class="time" id="time">0.0 s</span>
+      <span class="grow"></span>
+      <span class="seg"><button data-mode="recorded" class="on">Recorded set</button><button data-mode="demo">Demonstration</button></span>
+    </div>
+    <div class="timeline">
+      <div class="tl-legend" id="tlLegend"></div>
+      <canvas id="tl"></canvas>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="box">
+      <div class="eyebrow" id="repLabel">Rep –</div>
+      <div class="phase" id="phase">Standing</div>
+      <div class="muted" id="phaseText"></div>
+      <div class="steps" id="steps"><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div class="box">
+      <div class="eyebrow">Quadriceps activation</div>
+      <div class="muted" id="actNote">Envelope now, relative to this set's high level (95th percentile)</div>
+      <div class="side"><b style="color:var(--left)">Left</b><div class="bar"><i id="barL" style="background:var(--left)"></i></div><span class="num" id="numL">–</span></div>
+      <div class="side"><b style="color:var(--right)">Right</b><div class="bar"><i id="barR" style="background:var(--right)"></i></div><span class="num" id="numR">–</span></div>
+      <div class="verdict" id="verdict">–</div>
+      <div class="demo" id="demoBox">
+        <div class="muted" style="margin-top:4px">Simulated left/right difference: <b id="demoVal">30% (right weaker)</b></div>
+        <input type="range" id="demoSlider" min="-60" max="60" value="30" step="5">
+        <div class="scale-l"><span>left weaker</span><span>equal</span><span>right weaker</span></div>
+      </div>
+    </div>
+    <div class="box">
+      <div class="eyebrow" id="siTitle">Symmetry Index of this rep</div>
+      <div class="si-row"><span class="big" id="si">–</span><span class="pill na" id="siPill">–</span></div>
+      <div class="muted" id="siNote">SI = |RMS<sub>L</sub> − RMS<sub>R</sub>| / max · imbalance if SI ≥ 0.15</div>
+    </div>
+    <div class="box">
+      <div class="eyebrow">Colour scale</div>
+      <div class="scale"></div>
+      <div class="scale-l"><span>low</span><span>moderate</span><span>high</span></div>
+      <div class="unmeasured"><i></i>Not measured (glutes, hamstrings, calves)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // if the module below never starts, show the fallback message
+  setTimeout(() => { if (!window.__viewerOK) document.getElementById('fallback').style.display = 'grid'; }, 8000);
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// rigged character from the three.js examples (Mixamo), loaded at run time
+const MODEL_URL = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r160/examples/models/gltf/Michelle.glb';
+
+const DATA = __DATA__;
+const $ = id => document.getElementById(id);
+
+// ------------------------------------------------------------------ timing: real markers, illustrative movement
+const N = DATA.L.length, DT = DATA.dt, T = (N - 1) * DT;
+// scale: 95th percentile of both legs in this set (one spike should not wash out the colours)
+const PEAK = [...DATA.L, ...DATA.R].sort((a, b) => a - b)[Math.floor(.95 * 2 * N)];
+const M = DATA.markers;
+const PHASES = [
+  ['Standing', 'Upright, bar on the upper back. The quadriceps work lightly to keep the knees straight.'],
+  ['Lowering (eccentric)', 'Hips and knees bend together. The quadriceps lengthen while they brake the descent.'],
+  ['Bottom', 'Deepest point, thighs about parallel. The quadriceps switch from braking to driving.'],
+  ['Rising (concentric)', 'Knees and hips extend. The quadriceps shorten to lift the body and the bar.'],
+  ['Return', 'Back to standing, ready for the next rep.'],
+];
+const ease = x => x * x * (3 - 2 * x);
+
+// Movement window of each rep, estimated from its EMG burst (there was no motion capture):
+// the squat runs while the summed envelope is above 25% of the rep's maximum, and the bottom sits at the burst's peak.
+const WIN = [];
+for (let i = 0; i < M.length - 1; i++) {
+  const a = Math.round(M[i] / DT), b = Math.min(Math.round(M[i + 1] / DT), N - 1);
+  let peak = a, hi = 0;
+  for (let j = a; j <= b; j++) { const v = DATA.L[j] + DATA.R[j]; if (v > hi) { hi = v; peak = j; } }
+  let s0 = peak, s1 = peak;
+  while (s0 > a && DATA.L[s0] + DATA.R[s0] > .25 * hi) s0--;
+  while (s1 < b && DATA.L[s1] + DATA.R[s1] > .25 * hi) s1++;
+  const start = Math.max(M[i], s0 * DT - .35), stop = Math.min(M[i + 1], s1 * DT + .35), bottom = peak * DT;
+  WIN.push({ start, stop, b0: Math.max(start + .2, bottom - .18), b1: Math.min(stop - .2, bottom + .18) });
+}
+
+function phaseAt(t) {
+  for (let i = 0; i < M.length - 1; i++) {
+    if (t >= M[i] && t < M[i + 1]) {
+      const w = WIN[i];
+      let p, s;
+      if (t < w.start) { p = 0; s = 0; }
+      else if (t < w.b0) { p = 1; s = ease((t - w.start) / (w.b0 - w.start)); }
+      else if (t < w.b1) { p = 2; s = 1; }
+      else if (t < w.stop) { p = 3; s = 1 - ease((t - w.b1) / (w.stop - w.b1)); }
+      else { p = 4; s = 0; }
+      return { rep: i + 1, phase: p, depth: s };
+    }
+  }
+  return { rep: 0, phase: 0, depth: 0 };
+}
+
+function envAt(arr, t) {
+  const x = Math.min(Math.max(t / DT, 0), N - 1), i = Math.floor(x), f = x - i;
+  return arr[i] * (1 - f) + arr[Math.min(i + 1, N - 1)] * f;
+}
+
+let mode = 'recorded', demoDiff = 30;
+function activation(t) {
+  if (mode === 'recorded') return { L: Math.min(envAt(DATA.L, t) / PEAK, 1), R: Math.min(envAt(DATA.R, t) / PEAK, 1) };
+  // demonstration: activation follows squat depth (higher while rising). Simulated, not measured.
+  const ph = phaseAt(t), boost = ph.phase === 3 ? 1 : ph.phase === 2 ? .9 : .75;
+  const base = ph.rep ? (.12 + .88 * ph.depth * boost) : .1;
+  const d = demoDiff / 100;
+  return { L: base * (d < 0 ? 1 + d : 1), R: base * (d > 0 ? 1 - d : 1) };
+}
+
+// ------------------------------------------------------------------ colours
+const STOPS = [[0, '#D8CDDC'], [.5, '#F4D5C4'], [.78, '#E89A72'], [1, '#D4703F']].map(([p, c]) => [p, new THREE.Color(c)]);
+function actColor(a, out) {
+  a = Math.min(Math.max(a, 0), 1);
+  for (let i = 1; i < STOPS.length; i++) if (a <= STOPS[i][0]) {
+    const [p0, c0] = STOPS[i - 1], [p1, c1] = STOPS[i];
+    return out.copy(c0).lerp(c1, (a - p0) / (p1 - p0));
+  }
+  return out.copy(STOPS[STOPS.length - 1][1]);
+}
+
+// ------------------------------------------------------------------ panel and timeline (work even without WebGL)
+const tl = $('tl'), tctx = tl.getContext('2d');
+$('tlLegend').innerHTML = '<span><i class="sw" style="background:var(--left)"></i>left quadriceps</span>' +
+  '<span><i class="sw" style="background:var(--right)"></i>right quadriceps</span>' +
+  '<span id="tlKind">recorded envelope (µV) · dashed lines = rep markers</span>' +
+  '<span><i class="sw" style="background:#F4D5C4;height:8px"></i>lowering</span><span><i class="sw" style="background:#E2D8E4;height:8px"></i>rising (estimated)</span>';
+
+function drawTimeline(t) {
+  const w = tl.clientWidth, h = tl.clientHeight, dpr = window.devicePixelRatio || 1;
+  if (tl.width !== w * dpr) { tl.width = w * dpr; tl.height = h * dpr; }
+  tctx.setTransform(dpr, 0, 0, dpr, 0, 0); tctx.clearRect(0, 0, w, h);
+  const X = s => 4 + (w - 8) * s / T, top = 6, bot = h - 18;
+  // phase bands for each rep (illustrative timing)
+  for (let i = 0; i < M.length - 1; i++) {
+    const a = M[i], b = M[i + 1], d = b - a;
+    const w = WIN[i];
+    tctx.fillStyle = 'rgba(244,213,196,.4)'; tctx.fillRect(X(w.start), top, X(w.b0) - X(w.start), bot - top);
+    tctx.fillStyle = 'rgba(169,149,173,.2)'; tctx.fillRect(X(w.b1), top, X(w.stop) - X(w.b1), bot - top);
+    tctx.fillStyle = '#817984'; tctx.font = '10.5px Inter, sans-serif'; tctx.textAlign = 'center';
+    tctx.fillText('rep ' + (i + 1), X(a + d / 2), h - 5);
+  }
+  tctx.setLineDash([3, 3]); tctx.strokeStyle = '#C9B8CE'; tctx.lineWidth = 1;
+  M.forEach(m => { tctx.beginPath(); tctx.moveTo(X(m), top); tctx.lineTo(X(m), bot); tctx.stroke(); });
+  tctx.setLineDash([]);
+  if (mode === 'recorded') {
+    [['L', '#7A5596'], ['R', '#D4703F']].forEach(([k, c]) => {
+      tctx.beginPath(); tctx.strokeStyle = c; tctx.lineWidth = 1.6;
+      DATA[k].forEach((v, i) => { const x = X(i * DT), y = bot - (bot - top - 4) * Math.min(v / PEAK, 1.08); i ? tctx.lineTo(x, y) : tctx.moveTo(x, y); });
+      tctx.stroke();
+    });
+  } else {
+    const steps = 400;
+    [['L', '#7A5596'], ['R', '#D4703F']].forEach(([k, c]) => {
+      tctx.beginPath(); tctx.strokeStyle = c; tctx.lineWidth = 1.6; tctx.setLineDash([5, 3]);
+      for (let i = 0; i <= steps; i++) { const s = T * i / steps, v = activation(s)[k], x = X(s), y = bot - (bot - top - 4) * v;
+        i ? tctx.lineTo(x, y) : tctx.moveTo(x, y); }
+      tctx.stroke(); tctx.setLineDash([]);
+    });
+  }
+  tctx.strokeStyle = '#302A33'; tctx.lineWidth = 2;
+  tctx.beginPath(); tctx.moveTo(X(t), 2); tctx.lineTo(X(t), bot + 2); tctx.stroke();
+  tctx.fillStyle = '#302A33'; tctx.beginPath(); tctx.arc(X(t), 4, 4, 0, Math.PI * 2); tctx.fill();
+}
+
+const repInfo = Object.fromEntries(DATA.reps.map(r => [r.rep, r]));
+function updatePanel(t, act, ph) {
+  $('time').textContent = t.toFixed(1) + ' s / ' + T.toFixed(1) + ' s';
+  $('repLabel').textContent = ph.rep ? `Rep ${ph.rep} of ${M.length - 1}` : 'Between reps';
+  $('phase').textContent = ph.rep ? PHASES[ph.phase][0] : 'Standing';
+  $('phaseText').textContent = ph.rep ? PHASES[ph.phase][1] : 'Before the first or after the last rep marker.';
+  [...$('steps').children].forEach((s, i) => s.classList.toggle('on', ph.rep && i <= ph.phase));
+  const pl = Math.round(act.L * 100), pr = Math.round(act.R * 100);
+  $('barL').style.width = pl + '%'; $('barR').style.width = pr + '%';
+  if (mode === 'recorded') {
+    $('numL').textContent = Math.round(envAt(DATA.L, t)) + ' µV'; $('numR').textContent = Math.round(envAt(DATA.R, t)) + ' µV';
+  } else { $('numL').textContent = pl + '%'; $('numR').textContent = pr + '%'; }
+  const hi = Math.max(act.L, act.R), diff = hi > 0 ? Math.abs(act.L - act.R) / hi : 0;
+  const side = act.L > act.R ? 'left' : 'right', other = side === 'left' ? 'right' : 'left';
+  $('verdict').innerHTML = hi < .1 ? 'Both quadriceps are nearly at rest here, so the difference is not meaningful.' :
+    diff < .05 ? 'Both legs are about equally active right now.' :
+    `<b>${side[0].toUpperCase() + side.slice(1)}</b> is higher by <b>${Math.round(diff * 100)}%</b> right now: the ${other} leg is the weaker one at this moment.` +
+    (mode === 'recorded' ? ' A higher EMG means more measured activity, not necessarily a stronger leg: electrode position, skin and fat also change it.' : '');
+  if (mode === 'recorded') {
+    const r = repInfo[ph.rep];
+    $('siTitle').textContent = 'Symmetry Index of this rep (recorded)';
+    if (r) {
+      $('si').textContent = r.si.toFixed(3);
+      $('siPill').className = 'pill ' + (r.label ? 'imb' : 'bal'); $('siPill').textContent = r.label ? 'IMBALANCE' : 'BALANCED';
+      $('siNote').innerHTML = `Weaker leg in this rep: <b>${r.weak === 'L' ? 'left' : 'right'}</b>. SI = |RMS<sub>L</sub> − RMS<sub>R</sub>| / max over the whole rep; imbalance if SI ≥ 0.15.`;
+    } else { $('si').textContent = '–'; $('siPill').className = 'pill na'; $('siPill').textContent = 'NO REP'; }
+  } else {
+    const si = Math.abs(demoDiff) / 100;
+    $('siTitle').textContent = 'Symmetry Index (simulated)';
+    $('si').textContent = si.toFixed(2);
+    $('siPill').className = 'pill ' + (si >= .15 ? 'imb' : 'bal'); $('siPill').textContent = si >= .15 ? 'IMBALANCE' : 'BALANCED';
+    $('siNote').innerHTML = 'Demonstration only: the difference comes from the slider, not from a recording or the model.';
+  }
+}
+
+// ------------------------------------------------------------------ playback state
+let t = M.length ? Math.max(M[0] - .3, 0) : 0, playing = false, speed = 1, last = performance.now();
+let frame = () => {};          // replaced by the 3D renderer when WebGL works
+function setPlaying(p) { playing = p; $('play').textContent = p ? '❚❚ Pause' : '▶ Play'; last = performance.now(); }
+$('play').onclick = () => { if (t >= T - .01) t = 0; setPlaying(!playing); };
+$('replay').onclick = () => { t = M.length ? Math.max(M[0] - .3, 0) : 0; setPlaying(true); };
+document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => {
+  speed = +b.dataset.speed; document.querySelectorAll('[data-speed]').forEach(x => x.classList.toggle('on', x === b)); });
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+  mode = b.dataset.mode; document.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
+  const sim = mode === 'demo';
+  $('badge').textContent = sim ? 'SIMULATED DEMONSTRATION · not a recording' : `RECORDED EMG · ${DATA.title}`;
+  $('badge').classList.toggle('sim', sim);
+  $('demoBox').style.display = sim ? 'block' : 'none';
+  $('actNote').textContent = sim ? 'Simulated activation, % of maximum' : "Envelope now, relative to this set's high level (95th percentile)";
+  $('tlKind').textContent = sim ? 'simulated activation (dashed) · timing from the same rep markers' : 'recorded envelope (µV) · dashed lines = rep markers';
+});
+$('demoSlider').oninput = e => { demoDiff = +e.target.value;
+  $('demoVal').textContent = demoDiff === 0 ? 'equal' : `${Math.abs(demoDiff)}% (${demoDiff < 0 ? 'left' : 'right'} weaker)`; };
+$('badge').textContent = `RECORDED EMG · ${DATA.title}`;
+
+function scrub(e) {
+  const r = tl.getBoundingClientRect();
+  t = Math.min(Math.max((e.clientX - r.left - 4) / (r.width - 8), 0), 1) * T;
+}
+let dragging = false;
+tl.addEventListener('pointerdown', e => { dragging = true; tl.setPointerCapture(e.pointerId); scrub(e); });
+tl.addEventListener('pointermove', e => dragging && scrub(e));
+tl.addEventListener('pointerup', () => dragging = false);
+
+function loop(now) {
+  const dt = Math.min((now - last) / 1000, .1); last = now;
+  if (playing) { t += dt * speed; if (t >= T) { t = T; setPlaying(false); } }
+  const ph = phaseAt(t), act = activation(t);
+  frame(ph, act);
+  updatePanel(t, act, ph);
+  drawTimeline(t);
+  requestAnimationFrame(loop);
+}
+
+// ------------------------------------------------------------------ 3D scene
+let pose = () => {};
+requestAnimationFrame(loop);      // the panel and timeline run while the model loads
+try {
+  const canvas = $('gl');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture;
+  const camera = new THREE.PerspectiveCamera(32, 1, .05, 50);
+  const controls = new OrbitControls(camera, canvas);
+  controls.target.set(0, .86, .02); controls.enableDamping = true; controls.minDistance = 1.4; controls.maxDistance = 6;
+  controls.maxPolarAngle = Math.PI * .58;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xE8DDE3, .7));
+  const key = new THREE.DirectionalLight(0xffffff, 2.1); key.position.set(2.2, 3.6, 2.8); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.camera.left = -1.5; key.shadow.camera.right = 1.5;
+  key.shadow.camera.top = 2.2; key.shadow.camera.bottom = -.5; key.shadow.radius = 6; key.shadow.bias = -.0004;
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xF4D5C4, 1.1); rim.position.set(-2.5, 2.2, -2.5); scene.add(rim);
+
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(1.6, 64),
+    new THREE.MeshStandardMaterial({ color: 0xF4EEF1, roughness: .95 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.008, 96), new THREE.MeshBasicMaterial({ color: 0xE2D6DD }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = .001; scene.add(ring);
+
+  // materials for the bar and the sensors
+  const metal = new THREE.MeshStandardMaterial({ color: 0x77707D, metalness: .85, roughness: .3 });
+  const plate = new THREE.MeshStandardMaterial({ color: 0x4B3A57, roughness: .45, metalness: .2 });
+  const sensorMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: .35 });
+  const shadow = m => { m.castShadow = true; m.receiveShadow = true; return m; };
+  const V3 = THREE.Vector3, X = new V3(1, 0, 0), deg = Math.PI / 180;
+  const sm = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
+  const wp = (o, v = new V3()) => o.getWorldPosition(v);
+
+  function label(text, color) {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 96; const g = c.getContext('2d');
+    g.fillStyle = 'rgba(255,255,255,.95)'; g.strokeStyle = color; g.lineWidth = 4;
+    g.beginPath(); g.roundRect(8, 14, 240, 68, 34); g.fill(); g.stroke();
+    g.fillStyle = color; g.font = '700 38px Inter, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text, 128, 49);
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false })); s.scale.set(.2, .075, 1);
+    s.renderOrder = 10; return s;
+  }
+
+  // ---- the human: a rigged character (Mixamo "Michelle", from the three.js examples), posed bone by bone
+  const gltf = await new GLTFLoader().loadAsync(MODEL_URL);
+  const model = gltf.scene; scene.add(model);
+  const B = {}, meshes = [];
+  model.traverse(o => {
+    if (o.isBone) B[o.name.replace('mixamorig', '')] = o;
+    if (o.isSkinnedMesh) { o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false; meshes.push(o); }
+  });
+  function skinnedBox() {
+    const box = new THREE.Box3(), v = new V3(); model.updateMatrixWorld(true);
+    meshes.forEach(m => { for (let i = 0; i < m.geometry.attributes.position.count; i += 4) {
+      m.getVertexPosition(i, v); box.expandByPoint(v.applyMatrix4(m.matrixWorld)); } });
+    return box;
+  }
+  let box = skinnedBox();
+  model.scale.multiplyScalar(1.63 / (box.max.y - box.min.y));          // a 1.63 m participant
+  box = skinnedBox();
+  model.position.x -= (box.min.x + box.max.x) / 2; model.position.z -= (box.min.z + box.max.z) / 2;
+  model.position.y -= box.min.y; model.updateMatrixWorld(true);
+
+  const rest = new Map(); model.traverse(o => o.isBone && rest.set(o, o.quaternion.clone()));
+  const restPos = model.position.clone();
+  const SIDES = [['Left', 'L', 1], ['Right', 'R', -1]];
+  const R0 = {};
+  SIDES.forEach(([S, k]) => R0[k] = {
+    hip: wp(B[S + 'UpLeg']), knee: wp(B[S + 'Leg']), ankle: wp(B[S + 'Foot']),
+    foot: wp(B[S + 'ToeBase']).sub(wp(B[S + 'Foot'])).normalize() });
+  const ankle0 = R0.L.ankle.clone().add(R0.R.ankle).multiplyScalar(.5);
+
+  // quadriceps region on the skin: vertices skinned to the thigh bone, on its front and outer side, hip to knee
+  const U = { uColL: { value: new THREE.Color() }, uColR: { value: new THREE.Color() }, uGlowL: { value: 0 }, uGlowR: { value: 0 },
+            uTop: { value: new THREE.Color(0x5E4A6B) } };
+  const best = { L: [-1e9, null], R: [-1e9, null] };
+  meshes.forEach(m => {
+    const pos = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight;
+    const bi = n => m.skeleton.bones.indexOf(B[n]);
+    const ids = { L: [bi('LeftUpLeg'), bi('LeftLeg')], R: [bi('RightUpLeg'), bi('RightLeg')] };
+    const quad = new Float32Array(pos.count * 2), cover = new Float32Array(pos.count), v = new V3();
+    // a modest long-sleeve top: everything skinned to the trunk, shoulders and arms, above the hips
+    const top = ['Hips', 'Spine', 'Spine1', 'Spine2', 'LeftShoulder', 'RightShoulder', 'LeftArm', 'RightArm',
+                 'LeftForeArm', 'RightForeArm'].map(bi), hipY = R0.L.hip.y;
+    for (let i = 0; i < pos.count; i++) {
+      m.getVertexPosition(i, v).applyMatrix4(m.matrixWorld);
+      let wt = 0; for (let c = 0; c < 4; c++) if (top.includes(si.getComponent(i, c))) wt += sw.getComponent(i, c);
+      cover[i] = Math.min(wt * 1.6, 1) * sm(hipY - .14, hipY - .04, v.y);
+      SIDES.forEach(([, k, sg], j) => {
+        let w = 0; for (let c = 0; c < 4; c++) if (ids[k].includes(si.getComponent(i, c))) w += sw.getComponent(i, c);
+        if (w < .05) return;
+        const { hip, knee } = R0[k], t = (hip.y - v.y) / (hip.y - knee.y);
+        const ax = hip.x + (knee.x - hip.x) * t, az = hip.z + (knee.z - hip.z) * t;
+        const dz = v.z - az, out = (v.x - ax) * sg;
+        const val = Math.min(w * 1.25, 1) * sm(-.02, .035, dz + .45 * Math.max(0, out)) * sm(.06, .3, t) * (1 - sm(.8, 1, t));
+        quad[i * 2 + j] = val;
+        const score = val - Math.abs(t - .5) * 2 + dz * 4;                 // sensor spot: mid-thigh, front
+        if (val > .6 && score > best[k][0]) best[k] = [score, v.clone()];
+      });
+    }
+    m.geometry.setAttribute('aQuad', new THREE.BufferAttribute(quad, 2));
+    m.geometry.setAttribute('aCover', new THREE.BufferAttribute(cover, 1));
+    m.material = m.material.clone();
+    m.userData.map = m.material.map; m.userData.color = m.material.color.clone();
+    m.material.onBeforeCompile = sh => {
+      Object.assign(sh.uniforms, U);
+      sh.vertexShader = 'attribute vec2 aQuad;\nattribute float aCover;\nvarying vec2 vQuad;\nvarying float vCover;\n' +
+        sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vQuad = aQuad; vCover = aCover;');
+      sh.fragmentShader = 'uniform vec3 uColL, uColR, uTop;\nuniform float uGlowL, uGlowR;\nvarying vec2 vQuad;\nvarying float vCover;\n' +
+        sh.fragmentShader
+          .replace('#include <color_fragment>', `#include <color_fragment>
+  diffuseColor.rgb = mix(diffuseColor.rgb, uTop, vCover);
+  diffuseColor.rgb = mix(diffuseColor.rgb, uColL, vQuad.x * .88);
+  diffuseColor.rgb = mix(diffuseColor.rgb, uColR, vQuad.y * .88);`)
+          .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+  totalEmissiveRadiance += uColL * vQuad.x * uGlowL + uColR * vQuad.y * uGlowR;`);
+    };
+  });
+
+  // sensors and side labels ride on the thigh bones
+  const pickable = [...meshes];
+  SIDES.forEach(([S, k, sg]) => {
+    const thigh = B[S + 'UpLeg'];
+    if (best[k][1]) {
+      const sensor = shadow(new THREE.Mesh(new THREE.BoxGeometry(.028, .042, .012), sensorMat));
+      sensor.position.copy(best[k][1]).add(new V3(0, 0, .006)); scene.add(sensor); thigh.attach(sensor);
+      sensor.userData.name = `${S} EMG sensor (Delsys Trigno) · front of the thigh`; pickable.unshift(sensor);
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(.005, 12, 8), new THREE.MeshBasicMaterial({ color: k === 'L' ? 0x7A5596 : 0xD4703F }));
+      dot.position.set(0, 0, .007); sensor.add(dot);
+    }
+    const tag = label(S.toUpperCase(), k === 'L' ? '#7A5596' : '#D4703F');
+    tag.position.copy(R0[k].hip).lerp(R0[k].knee, .45).add(new V3(sg * .17, 0, .02)); scene.add(tag); thigh.attach(tag);
+  });
+
+  // the barbell, placed in the hands every frame
+  const barbell = new THREE.Group(); scene.add(barbell);
+  const barRod = shadow(new THREE.Mesh(new THREE.CylinderGeometry(.013, .013, 1.7, 20), metal)); barRod.rotation.z = Math.PI / 2;
+  barbell.add(barRod);
+  [-1, 1].forEach(s => {
+    [0, 1].forEach(j => { const p = shadow(new THREE.Mesh(new THREE.CylinderGeometry(.2 - j * .04, .2 - j * .04, .035, 48), plate));
+      p.rotation.z = Math.PI / 2; p.position.x = s * (.66 + j * .045); barbell.add(p); });
+    const c = shadow(new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .03, 20), metal));
+    c.rotation.z = Math.PI / 2; c.position.x = s * .62; barbell.add(c);
+  });
+
+  // rotate a bone (in world space) so that the direction bone -> tip points along dir
+  const _a = new V3(), _b = new V3(), _q = new THREE.Quaternion(), _qw = new THREE.Quaternion(), _qp = new THREE.Quaternion();
+  function aim(bone, tip, dir) {
+    wp(bone, _a); wp(tip, _b);
+    _q.setFromUnitVectors(_b.sub(_a).normalize(), dir.normalize());
+    bone.getWorldQuaternion(_qw); bone.parent.getWorldQuaternion(_qp);
+    bone.quaternion.copy(_qp.invert().multiply(_q.multiply(_qw)));
+    bone.updateMatrixWorld(true);
+  }
+
+  pose = (ph, act) => {
+    // planted feet: ankle dorsiflexion a, knee flexion k (thigh angle k - a); the pelvis and trunk hinge forward
+    const s = ph.depth, a = 27 * s * deg, k = 108 * s * deg, lean = (3 + 36 * s) * deg;
+    for (const [b, q] of rest) b.quaternion.copy(q);
+    model.position.copy(restPos); model.updateMatrixWorld(true);
+    const tilt = v => v.applyAxisAngle(X, lean);
+    aim(B.Hips, B.Neck, tilt(new V3(0, 1, 0)));
+    aim(B.Neck, B.Head, new V3(0, 1, 0).applyAxisAngle(X, lean * .3));
+    SIDES.forEach(([S, k2, sg]) => {
+      const r = R0[k2], tx = (r.knee.x - r.hip.x) / r.hip.distanceTo(r.knee);
+      aim(B[S + 'UpLeg'], B[S + 'Leg'], new V3(tx + sg * .1 * s, -Math.cos(k - a), Math.sin(k - a)));
+      aim(B[S + 'Leg'], B[S + 'Foot'], new V3(tx * .5 + sg * .04 * s, -Math.cos(a), -Math.sin(a)));
+      aim(B[S + 'Foot'], B[S + 'ToeBase'], r.foot.clone());
+      aim(B[S + 'Arm'], B[S + 'ForeArm'], tilt(new V3(sg * .72, -.42, -.5)));
+      aim(B[S + 'ForeArm'], B[S + 'Hand'], tilt(new V3(-sg * .12, .95, .12)));
+    });
+    const now = wp(B.LeftFoot).add(wp(B.RightFoot)).multiplyScalar(.5);
+    model.position.add(ankle0.clone().sub(now)); model.updateMatrixWorld(true);
+    const hl = wp(B.LeftHand), hr = wp(B.RightHand), palm = wp(B.LeftHandMiddle1).sub(hl).multiplyScalar(.9);
+    barbell.position.copy(hl).add(hr).multiplyScalar(.5).add(palm.setX(0));
+    barbell.quaternion.setFromUnitVectors(X, hl.clone().sub(hr).normalize());
+    actColor(act.L, U.uColL.value); actColor(act.R, U.uColR.value);
+    U.uGlowL.value = .1 + .45 * act.L; U.uGlowR.value = .1 + .45 * act.R;
+  };
+  $('loading').style.display = 'none';
+
+  // Natural = the character's own texture; Anatomy = a plain mauve body so the measured muscle stands out
+  document.querySelectorAll('[data-look]').forEach(b => b.onclick = () => {
+    const anatomy = b.dataset.look === 'anatomy';
+    document.querySelectorAll('[data-look]').forEach(x => x.classList.toggle('on', x === b));
+    meshes.forEach(m => { m.material.map = anatomy ? null : m.userData.map;
+      m.material.color.copy(anatomy ? new THREE.Color(0xB7A5BC) : m.userData.color); m.material.needsUpdate = true; });
+  });
+
+  // camera views
+  const VIEWS = { front: [0, 1.05, 3.9], three: [2.45, 1.35, 3.05], side: [-3.75, 1.1, 1.0], back: [0, 1.25, -3.9] };
+  let flyTo = null;
+  function setView(v) { flyTo = new THREE.Vector3(...VIEWS[v]);
+    document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v)); }
+  document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
+  camera.position.set(...VIEWS.three);
+
+  // hover -> what is under the pointer
+  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), tip = $('tip');
+  let lastPick = 0;
+  canvas.addEventListener('pointermove', e => {
+    if (e.buttons || performance.now() - lastPick < 80) return; lastPick = performance.now();
+    const r = canvas.getBoundingClientRect();
+    mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+    ray.setFromCamera(mouse, camera);
+    const hit = ray.intersectObjects(pickable, false)[0];
+    let text = '';
+    if (hit && hit.object.userData.name) text = hit.object.userData.name;
+    else if (hit && hit.face) {
+      const q = hit.object.geometry.attributes.aQuad;
+      text = q.getX(hit.face.a) > .3 ? 'Left quadriceps · measured by the EMG sensor'
+           : q.getY(hit.face.a) > .3 ? 'Right quadriceps · measured by the EMG sensor' : 'Not measured';
+    }
+    tip.style.display = text ? 'block' : 'none'; tip.textContent = text;
+    tip.style.left = (e.clientX - r.left + 12) + 'px'; tip.style.top = (e.clientY - r.top + 12) + 'px';
+  });
+  canvas.addEventListener('pointerleave', () => tip.style.display = 'none');
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(canvas); resize();
+
+  frame = (ph, act) => {
+    pose(ph, act);
+    if (flyTo) { camera.position.lerp(flyTo, .08); if (camera.position.distanceTo(flyTo) < .01) flyTo = null; }
+    controls.update();
+    renderer.render(scene, camera);
+  };
+  window.__viewerOK = true;
+} catch (err) {
+  console.error(err);
+  $('loading').style.display = 'none';
+
+  // Natural = the character's own texture; Anatomy = a plain mauve body so the measured muscle stands out
+  document.querySelectorAll('[data-look]').forEach(b => b.onclick = () => {
+    const anatomy = b.dataset.look === 'anatomy';
+    document.querySelectorAll('[data-look]').forEach(x => x.classList.toggle('on', x === b));
+    meshes.forEach(m => { m.material.map = anatomy ? null : m.userData.map;
+      m.material.color.copy(anatomy ? new THREE.Color(0xB7A5BC) : m.userData.color); m.material.needsUpdate = true; });
+  });
+  $('fallback').style.display = 'grid';
+  window.__viewerOK = true;
+}
+</script>
+</body>
+</html>
